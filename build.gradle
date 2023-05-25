@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id "io.freefair.lombok" version "6.0.0-m2"
 }
 
 repositories {
@@ -14,8 +15,11 @@ dependencies {
             "io.rest-assured:rest-assured:$restAssuredVersion",
             "io.rest-assured:json-schema-validator:$restAssuredVersion",
             "org.junit.jupiter:junit-jupiter:5.9.2",
-            "org.slf4j:slf4j-simple:$slf4jVersion"
+            "org.slf4j:slf4j-simple:$slf4jVersion",
+            "org.aeonbits.owner:owner:1.0.12",
+            "com.fasterxml.jackson.core:jackson-databind:2.11.2"
     )
+    testImplementation 'org.projectlombok:lombok:1.18.22'
 }
 
 tasks.withType(Test) {
