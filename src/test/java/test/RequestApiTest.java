@@ -15,22 +15,19 @@ public class RequestApiTest {
 
     @Test
     @DisplayName("Проверка запроса на создание пользователя")
-
     void successfulCreateTest() {
         User user = new User();
         user.setName("morpheus");
         user.setJob("leader");
 
         ResponseCreate response = step("Make request for create user", () ->
-                given()
-                .spec(request)
-                .body(user)
-                .when()
-                .post("/users")
-                .then()
-                .spec(responseCreated)
-                .log().body()
-                .extract().as(ResponseCreate.class));
+                given(request)
+                        .body(user)
+                        .when()
+                        .post("/users")
+                        .then()
+                        .spec(responseCreated)
+                        .extract().as(ResponseCreate.class));
 
         step("Verify expected name", () ->
                 assertThat(response.getName()).isEqualTo("morpheus"));
@@ -44,13 +41,12 @@ public class RequestApiTest {
     void singleUserTest() {
 
         ResponseUser response = step("Checking one user's information", () ->
-                given()
-                .spec(request)
-                .when()
-                .get("/users/2")
-                .then()
-                .spec(responseOk)
-                .extract().as(ResponseUser.class));
+                given(request)
+                        .when()
+                        .get("/users/2")
+                        .then()
+                        .spec(responseOk)
+                        .extract().as(ResponseUser.class));
 
 
         step("Verify expected email", () ->
@@ -65,15 +61,13 @@ public class RequestApiTest {
         user.setPassword("pistol");
 
         ResponseRegister response = step("Make request for create user", () ->
-                given()
-                .spec(request)
-                .body(user)
-                .when()
-                .post("/register")
-                .then()
-                .spec(responseRegister)
-                .log().body()
-                .extract().as(ResponseRegister.class));
+                given(request)
+                        .body(user)
+                        .when()
+                        .post("/register")
+                        .then()
+                        .spec(responseRegister)
+                        .extract().as(ResponseRegister.class));
 
         step("Verify expected id", () ->
                 assertThat(response.getId()).isEqualTo(4));
@@ -86,16 +80,14 @@ public class RequestApiTest {
         user.setEmail("eve.holt@reqres.in");
         user.setPassword("");
 
-        ErrorResponse response =step ("Make request for create user", () ->
-                given()
-                .spec(request)
-                .body(user)
-                .when()
-                .post("/register")
-                .then()
-                .spec(responseBadRequest)
-                .log().body()
-                .extract().as(ErrorResponse.class));
+        ErrorResponse response = step("Make request for create user", () ->
+                given(request)
+                        .body(user)
+                        .when()
+                        .post("/register")
+                        .then()
+                        .spec(responseSpecStatusCodes400)
+                        .extract().as(ErrorResponse.class));
 
         step("Verify error", () ->
                 assertThat(response.getError()).isEqualTo("Missing password"));

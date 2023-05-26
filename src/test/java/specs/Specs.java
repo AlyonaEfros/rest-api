@@ -34,7 +34,7 @@ public class Specs {
             .expectStatusCode(200)
             .build();
 
-    public static ResponseSpecification responseBadRequest = new ResponseSpecBuilder()
+    public static ResponseSpecification responseSpecStatusCodes400 = new ResponseSpecBuilder()
             .log(STATUS)
             .log(BODY)
             .expectStatusCode(400)
