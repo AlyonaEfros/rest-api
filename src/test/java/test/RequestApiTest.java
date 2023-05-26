@@ -1,95 +1,104 @@
 package test;
 
-import models.ErrorResponse;
-import models.UserData;
+import models.*;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
-
-
-import java.util.HashMap;
-import java.util.Map;
-
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static specs.Specs.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 
 public class RequestApiTest {
 
-    @Test
-    void successfulCreateTest() {
 
-        given()
+    @Test
+    @DisplayName("Проверка запроса на создание пользователя")
+
+    void successfulCreateTest() {
+        User user = new User();
+        user.setName("morpheus");
+        user.setJob("leader");
+
+        ResponseCreate response = step("Make request for create user", () ->
+                given()
                 .spec(request)
+                .body(user)
                 .when()
                 .post("/users")
                 .then()
                 .spec(responseCreated)
-                .log().body();
+                .log().body()
+                .extract().as(ResponseCreate.class));
+
+        step("Verify expected name", () ->
+                assertThat(response.getName()).isEqualTo("morpheus"));
+        step("Verify expected job", () ->
+                assertThat(response.getJob()).isEqualTo("leader"));
+
     }
-
-    @ValueSource(strings = {"email", "password"})
-    @ParameterizedTest(name = "Unsuccessful user registration: missing parameter {0}")
-    public void registerWithoutOneParam(String parameter) {
-        String email = "eve.holt@reqres.in";
-        String password = "12234";
-        Map<String, String> data = new HashMap<>();
-        data.put("email", email);
-        data.put("password", password);
-
-        data.remove(parameter);
-
-        ErrorResponse registerError =
-                given()
-                        .spec(request)
-                        .body(data)
-                        .when()
-                        .post("/register/")
-                        .then()
-                        .spec(responseBadRequest)
-                        .log().body()
-                        .extract().as(ErrorResponse.class);
-
-        assertThat(registerError.getError(), containsString("Missing " + parameter));
-    }
-
 
     @Test
+    @DisplayName("Проверка информации одного пользователя")
     void singleUserTest() {
 
-        UserData data = given()
+        ResponseUser response = step("Checking one user's information", () ->
+                given()
                 .spec(request)
                 .when()
                 .get("/users/2")
                 .then()
                 .spec(responseOk)
-                .log().body()
-                .extract().as(UserData.class);
+                .extract().as(ResponseUser.class));
 
-        assertEquals("janet.weaver@reqres.in", data.getUser().getEmail());
+
+        step("Verify expected email", () ->
+                assertThat(response.getUser().getEmail()).isEqualTo("janet.weaver@reqres.in"));
     }
 
     @Test
-    void listResourceTest() {
+    @DisplayName("Проверка запроса на успешное создание пользователя")
+    void successfulRegisterTest() {
+        User user = new User();
+        user.setEmail("eve.holt@reqres.in");
+        user.setPassword("pistol");
 
-        given()
+        ResponseRegister response = step("Make request for create user", () ->
+                given()
                 .spec(request)
+                .body(user)
                 .when()
-                .get("/unknown")
+                .post("/register")
                 .then()
-                .spec(responseOk)
-                .body("data.color[3]",
-                        equalTo("#7BC4C4"))
-                .and()
-                .body("data.findAll{it.name =~/./}.name.flatten()",
-                        hasItem("aqua sky"))
-                .and()
-                .body("data.pantone_value.flatten()",
-                        hasItems("15-4020", "17-2031", "19-1664", "14-4811", "17-1456", "15-5217"));
+                .spec(responseRegister)
+                .log().body()
+                .extract().as(ResponseRegister.class));
+
+        step("Verify expected id", () ->
+                assertThat(response.getId()).isEqualTo(4));
     }
 
+    @Test
+    @DisplayName("Проверка запроса на отсутвие пароля создание пользователя")
+    void unsuccessfulRegisterTest() {
+        User user = new User();
+        user.setEmail("eve.holt@reqres.in");
+        user.setPassword("");
+
+        ErrorResponse response =step ("Make request for create user", () ->
+                given()
+                .spec(request)
+                .body(user)
+                .when()
+                .post("/register")
+                .then()
+                .spec(responseBadRequest)
+                .log().body()
+                .extract().as(ErrorResponse.class));
+
+        step("Verify error", () ->
+                assertThat(response.getError()).isEqualTo("Missing password"));
+    }
 
 }
